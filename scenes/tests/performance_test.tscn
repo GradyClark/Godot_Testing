@@ -1,0 +1,142 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://assets/3D/grass_block/grass_block.dae" type="PackedScene" id=1]
+[ext_resource path="res://scenes/tests/Particles.tscn" type="PackedScene" id=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Spatial
+
+
+# Declare member variables here. Examples:
+# var a = 2
+# var b = \"text\"
+
+const parti = preload(\"Particles.tscn\")
+
+var fps = 0
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	# WARNING:
+	# DUE TO OPENGL X.Y.Z SOMTHING VERSION-ISH
+	# OPENGL COMPILES SHADERS LAZILY
+	# THIS CAUSES A LAG, WHENEVER THE FIRST TIME A TEXTURE IS USED, OPENGL THEN COMPILES THE SHADER
+	# THE SOLUTION IS TO HAVE THE TEXTURES/MATERIALS/SHADERS/ETC LOAD AT THE START OF A MAP
+	# THEN KEEP THOSE TEXTURES OFF SCREEN SOMEWHERE, BUT STILL BEING DRAWN BY THE GPU
+	# THIS WILL KEEP THE COMPILED SHADERS FROM BEING DISCARDED
+	# VIOLA! NO MORE STRANGE LAG
+	
+	# Due to the below objects and such, there is no shaders saved, so i
+	# just create the entire thing at the start, and leave it in memory till the end
+	# thats why you see the first particles in the scence that you do
+	var new_emitter = parti.instance()
+	$grass_block/Particles.add_child(new_emitter)
+	var new_timer = Timer.new()
+	new_emitter.add_child(new_timer)
+	new_timer.wait_time = 2
+	new_timer.connect(\"timeout\", self, \"_delete_old_emitter\", [new_emitter])
+#	new_emitter.global_transform = $grass_block/Particles.global_transform
+	new_emitter.emitting=true
+	new_timer.start()
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	fps = str(Engine.get_frames_per_second()) + \" | \" + str(delta)
+	
+	$proformance_profiler_hud/fps_2.text = fps
+	
+func _input(event):
+	if event is InputEventKey:
+		if event.pressed:
+			if event.scancode == KEY_ESCAPE:
+				get_tree().quit()
+			elif event.scancode == KEY_ENTER:
+#				$grass_block/Particles.emitting = true
+				var new_emitter = parti.instance()
+				$grass_block/Particles.add_child(new_emitter)
+				var new_timer = Timer.new()
+				new_emitter.add_child(new_timer)
+				new_timer.wait_time = 2
+				new_timer.connect(\"timeout\", self, \"_delete_old_emitter\", [new_emitter])
+				new_emitter.global_transform = $grass_block/Particles.global_transform
+				new_emitter.emitting=true
+				new_timer.start()
+				# Warning about using duplicate, instead of instancing a new scene
+				# duplicate won't make uniqiue copies of sub nodes (not a bug)
+				# https://godotengine.org/qa/3942/how-can-i-duplicate-a-node-including-all-its-children
+				
+
+func _delete_old_emitter(emiter: Node):
+	emiter.queue_free()
+"
+
+[sub_resource type="BoxShape" id=2]
+
+[sub_resource type="SpatialMaterial" id=3]
+resource_local_to_scene = true
+resource_name = "pCube5SG"
+params_cull_mode = 2
+albedo_color = Color( 0.21, 0.21, 0.21, 1 )
+roughness = 0.0764706
+
+[sub_resource type="ParticlesMaterial" id=4]
+resource_local_to_scene = true
+next_pass = SubResource( 3 )
+
+[sub_resource type="SphereMesh" id=5]
+resource_local_to_scene = true
+radius = 0.5
+height = 1.0
+
+[node name="Spatial" type="Spatial"]
+script = SubResource( 1 )
+
+[node name="Floor" type="StaticBody" parent="."]
+transform = Transform( 25, 0, 0, 0, 1, 0, 0, 0, 25, 0, -0.5, 0 )
+
+[node name="CollisionShape" type="CollisionShape" parent="Floor"]
+shape = SubResource( 2 )
+
+[node name="grass_block" parent="Floor" instance=ExtResource( 1 )]
+
+[node name="grass_block" parent="." instance=ExtResource( 1 )]
+transform = Transform( 0.828813, 0, 0.559526, 0, 1, 0, -0.559526, 0, 0.828813, -0.063282, 1.78067, 23.2127 )
+
+[node name="Particles" parent="grass_block" instance=ExtResource( 2 )]
+process_material = SubResource( 4 )
+draw_pass_1 = SubResource( 5 )
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.833799, 0.552068, 0, -0.552068, 0.833799, 0.0616112, 6.60619, 26.763 )
+
+[node name="proformance_profiler_hud" type="Node2D" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="proformance_profiler_hud"]
+margin_right = 118.0
+margin_bottom = 56.0
+rect_scale = Vector2( 2.76052, 0.664276 )
+color = Color( 0.521569, 0.521569, 0.521569, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="fps_1" type="Label" parent="proformance_profiler_hud"]
+margin_right = 40.0
+margin_bottom = 20.0
+rect_scale = Vector2( 2.5, 2.5 )
+text = "FPS:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="fps_2" type="Label" parent="proformance_profiler_hud"]
+margin_left = 74.2336
+margin_top = 0.397622
+margin_right = 114.234
+margin_bottom = 20.3976
+rect_scale = Vector2( 2.5, 2.5 )
+text = "60"
+__meta__ = {
+"_edit_use_anchors_": false
+}

@@ -1,0 +1,18 @@
+Godot/OpenGl for some reason compiles shaders the first time the enter the viewport,
+not before. This causes a good deal of lag at times.
+To fix this have all the scenes materials/textures visible by the viewport at scene load
+then hide them, but don't delete them. (I think, but hiding them might not work idk)
+
+tldr: Shaders are compiled lazily, 
+  this causes lag the first time an texture/material appears on screen.
+  Fix: Load all shaders at scene load
+
+
+
+Related URLS:
+https://github.com/godotengine/godot/issues/13954
+https://github.com/godotengine/godot/issues/17263
+https://godotengine.org/qa/71019/how-fix-this-issue-with-shaders-compiling-for-every-unit-rts
+
+Git Pull, new Feature to fix such issue in Godot 3.x
+https://github.com/godotengine/godot/pull/46330

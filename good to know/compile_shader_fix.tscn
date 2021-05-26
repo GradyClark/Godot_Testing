@@ -1,0 +1,73 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://assets/3D/player/abilities/shoot/flash_animated.tres" type="Material" id=1]
+[ext_resource path="res://assets/3D/player/abilities/shoot/Impact_draw_pass.tres" type="SphereMesh" id=2]
+[ext_resource path="res://assets/3D/player/compile_shader_fix.gd" type="Script" id=3]
+
+[sub_resource type="ParticlesMaterial" id=1]
+direction = Vector3( 0, 0, 1 )
+spread = 15.0
+initial_velocity = 25.0
+initial_velocity_random = 0.5
+scale_random = 0.1
+
+[sub_resource type="CubeMesh" id=2]
+size = Vector3( 0.1, 0.1, 0.1 )
+
+[sub_resource type="SpatialMaterial" id=3]
+emission_enabled = true
+emission = Color( 0.93, 0.9, 0.89, 1 )
+emission_energy = 2.0
+emission_operator = 0
+emission_on_uv2 = false
+
+[sub_resource type="ParticlesMaterial" id=4]
+direction = Vector3( 0, 0, 1 )
+spread = 15.0
+initial_velocity = 25.0
+initial_velocity_random = 0.5
+scale_random = 0.1
+
+[node name="compile_shader_fix" type="Spatial"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.448353 )
+script = ExtResource( 3 )
+__meta__ = {
+"_editor_description_": "Position the block in front of the camera
+"
+}
+material_1 = ExtResource( 1 )
+material_2 = SubResource( 1 )
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true
+
+[node name="3D" type="Spatial" parent="."]
+
+[node name="shader_fix_base" type="MeshInstance" parent="3D"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0201794, 0.025386 )
+mesh = SubResource( 2 )
+material/0 = null
+
+[node name="particles_fix_base" type="Particles" parent="3D"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.044912, -0.0287944, -0.0254231 )
+material_override = SubResource( 3 )
+emitting = false
+amount = 1
+lifetime = 0.1
+one_shot = true
+explosiveness = 1.0
+visibility_aabb = AABB( 0, 0, 0, 0.1, 0.1, 0.1 )
+local_coords = false
+process_material = SubResource( 4 )
+draw_pass_1 = ExtResource( 2 )
+
+[node name="2D" type="Node2D" parent="."]
+
+[node name="canvas_fix_base" type="ColorRect" parent="2D"]
+margin_right = 21.0
+margin_bottom = 18.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]
